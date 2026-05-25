@@ -1,0 +1,56 @@
+Notas de Tareas - V21 Sincronización Firebase con emparejamiento
+
+Cambios incluidos:
+
+1. Sincronización automática con Firebase Realtime Database.
+2. Cada dispositivo genera y guarda su propio ID en localStorage.
+3. Se añade emparejamiento entre dispositivos desde el botón SINCRONIZAR.
+4. En la ventana de sincronización aparece:
+   - ID de este dispositivo.
+   - Botón para copiar el ID.
+   - Campo para pegar el ID del otro dispositivo.
+   - Botón EMPAREJAR.
+   - Botón para quitar emparejamiento.
+5. El emparejamiento queda guardado en localStorage para próximas sesiones.
+6. La sincronización automática solo se activa cuando hay un dispositivo emparejado.
+7. Las confirmaciones automáticas solo se esperan del dispositivo emparejado.
+8. localStorage se mantiene como respaldo offline.
+9. Cuando un dispositivo recibe datos desde Firebase y los guarda correctamente, escribe una confirmación automática en Firebase.
+10. El emisor muestra un indicador visual: "Sincronizado en el otro dispositivo" cuando recibe confirmación real del dispositivo emparejado.
+11. Cada tarea incluye campos de control temporal: createdAt, updatedAt y modificadoEn.
+12. Cada cambio importante queda registrado en el historial: creación, edición, finalización, eliminación y sincronización.
+13. En caso de conflicto, gana la versión con updatedAt/modificadoEn más reciente.
+14. La importación/exportación JSON sigue funcionando como respaldo manual.
+15. La app puede funcionar sin internet con localStorage, y al recuperar conexión intenta sincronizar con Firebase si hay emparejamiento.
+
+Firebase usado:
+- Proyecto: notas-tareas-v3
+- Realtime Database: https://notas-tareas-v3-default-rtdb.europe-west1.firebasedatabase.app
+- Ruta de datos usada: notas_tareas_v3/pares/[ID_DISPOSITIVO_1__ID_DISPOSITIVO_2]
+
+Cómo emparejar ordenador y móvil:
+1. Abre la app en el ordenador y pulsa SINCRONIZAR.
+2. Copia el ID de este dispositivo.
+3. Abre la app en el móvil, pulsa SINCRONIZAR, pega el ID del ordenador en "ID del otro dispositivo" y pulsa EMPAREJAR.
+4. Copia ahora el ID del móvil.
+5. Vuelve al ordenador, pega el ID del móvil en "ID del otro dispositivo" y pulsa EMPAREJAR.
+6. Desde ese momento, ambos dispositivos quedan vinculados y sincronizan automáticamente.
+
+Importante:
+- Las reglas actuales de Realtime Database están en modo prueba:
+  {
+    "rules": {
+      ".read": true,
+      ".write": true
+    }
+  }
+- Esto es correcto para probar, pero no es seguro para uso definitivo público.
+
+Prueba recomendada:
+1. Emparejar ordenador y móvil siguiendo los pasos anteriores.
+2. Crear o editar una tarea en el ordenador.
+3. Comprobar que aparece automáticamente en el móvil.
+4. Comprobar que en el ordenador aparece el texto/check de confirmación.
+5. Repetir la prueba en sentido contrario.
+
+No se ha rehecho el diseño de la app. Solo se ha añadido la capa de sincronización y emparejamiento necesaria.
