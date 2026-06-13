@@ -76,6 +76,19 @@ tr.prio-baja td:first-child{border-left:6px solid #777}tr.prio-media td:first-ch
 
 body.theme-blue{--accent:#007bff;--accent-dark:#0056b3}body.theme-green{--accent:#15803d;--accent-dark:#0f5c2c}body.theme-red{--accent:#c1121f;--accent-dark:#8d0d16}body.theme-yellow{--accent:#d99a00;--accent-dark:#9a6e00}body.theme-black{--accent:#222;--accent-dark:#000}
 body.size-compact{--font-scale:.88}body.size-normal{--font-scale:1}body.size-large{--font-scale:1.15}
+
+.info-start-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2147483646;align-items:center;justify-content:center;padding:16px}
+.info-start-overlay.visible{display:flex}
+.info-start-modal{width:min(520px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.35);padding:0}
+.info-start-header{background:var(--accent);color:#fff;text-align:center;font-weight:bold;letter-spacing:.5px;padding:12px 16px;border-radius:13px 13px 0 0;font-size:1.2em}
+.info-start-body{padding:14px;display:flex;flex-direction:column;gap:10px}
+.info-start-msg{border-radius:10px;padding:10px 12px;font-weight:bold;line-height:1.35;border:1px solid transparent;text-align:center}
+.info-start-msg.ok{background:#dff8df;color:#087f23;border-color:#a9e7ad}
+.info-start-msg.danger{background:#ffe0e0;color:#c1121f;border-color:#ffb2b2}
+.info-start-msg.warn{background:#fff0d8;color:#c26a00;border-color:#ffd08a}
+.info-start-actions{padding:0 14px 14px;text-align:center}
+.info-start-ok{min-width:120px;font-weight:bold;padding:8px 18px}
+
 @media print{
   body{background:white;margin:0;font-size:11px;overflow:visible}
   .app{height:auto;display:block}
@@ -112,6 +125,15 @@ body.size-compact{--font-scale:.88}body.size-normal{--font-scale:1}body.size-lar
 <th class="col-cod">COD</th><th class="col-tp">T/P <span class="multi-filter"><button class="multi-filter-btn no-print" onclick="toggleMultiFiltro(event,'tpFilterPanel')">▾</button><div id="tpFilterPanel" class="multi-filter-panel no-print"><label><input type="checkbox" value="T" onchange="onMultiFiltroChange('tipos')"> T</label><label><input type="checkbox" value="P" onchange="onMultiFiltroChange('tipos')"> P</label><div class="mini-actions"><button onclick="marcarTodasMulti('tipos')">Todas</button><button onclick="limpiarMulti('tipos')">Ninguna</button></div></div></span></th><th class="col-tarea">TAREA <button class="add-header no-print" onclick="nuevaTarea()" title="Nueva tarea">+</button></th><th class="col-prio">PRIO <span class="multi-filter"><button class="multi-filter-btn no-print" onclick="toggleMultiFiltro(event,'prioFilterPanel')">▾</button><div id="prioFilterPanel" class="multi-filter-panel no-print"><label><input type="checkbox" value="baja" onchange="onMultiFiltroChange('prioridades')"> baja</label><label><input type="checkbox" value="media" onchange="onMultiFiltroChange('prioridades')"> media</label><label><input type="checkbox" value="alta" onchange="onMultiFiltroChange('prioridades')"> alta</label><label><input type="checkbox" value="critica" onchange="onMultiFiltroChange('prioridades')"> crítica</label><div class="mini-actions"><button onclick="marcarTodasMulti('prioridades')">Todas</button><button onclick="limpiarMulti('prioridades')">Ninguna</button></div></div></span></th><th class="col-estado">ESTADO <span class="multi-filter"><button class="multi-filter-btn no-print" onclick="toggleMultiFiltro(event,'estadoFilterPanel')">▾</button><div id="estadoFilterPanel" class="multi-filter-panel no-print"><label><input type="checkbox" value="PENDIENTE" onchange="onMultiFiltroChange('estados')"> PENDIENTE</label><label><input type="checkbox" value="INICIADA" onchange="onMultiFiltroChange('estados')"> INICIADA</label><label><input type="checkbox" value="VENCIDA" onchange="onMultiFiltroChange('estados')"> VENCIDA</label><label><input type="checkbox" value="FINALIZADA" onchange="onMultiFiltroChange('estados')"> FINALIZADA</label><div class="mini-actions"><button onclick="marcarTodasMulti('estados')">Todas</button><button onclick="limpiarMulti('estados')">Ninguna</button></div></div></span></th><th class="col-acciones no-print">ACCIONES</th>
 </tr></thead><tbody id="tablaTareas"></tbody></table></div>
 </div>
+
+<div id="infoInicioOverlay" class="info-start-overlay no-print" role="dialog" aria-modal="true" aria-labelledby="infoInicioTitulo">
+  <div class="info-start-modal">
+    <div id="infoInicioTitulo" class="info-start-header">INFORMACION</div>
+    <div id="infoInicioBody" class="info-start-body"></div>
+    <div class="info-start-actions"><button class="info-start-ok" onclick="cerrarInfoInicio()">OK</button></div>
+  </div>
+</div>
+
 <div id="panelAjustes" class="panel no-print"><button class="close-panel" onclick="cerrarPanel('panelAjustes')">Cerrar</button><h3>Ajustes</h3>
 <div class="panel-row"><label>Modo visual:</label><select id="ajusteModo" onchange="guardarAjustesDesdePanel()"><option value="2d">2D</option><option value="3d">3D</option></select></div>
 <div class="panel-row"><label>Tema:</label><select id="ajusteTema" onchange="guardarAjustesDesdePanel()"><option value="blue">Azul</option><option value="green">Verde</option><option value="red">Rojo</option><option value="yellow">Amarillo</option><option value="black">Negro</option></select></div>
@@ -218,9 +240,56 @@ function cerrarPanel(id){document.getElementById(id).style.display="none"}
 function aplicarAjustes(){document.body.className="";document.body.classList.add("mode-"+(ajustes.modo||"2d"));document.body.classList.add("theme-"+(ajustes.tema||"blue"));document.body.classList.add("size-"+(ajustes.escala||"normal"));const m=document.getElementById("ajusteModo"),t=document.getElementById("ajusteTema"),e=document.getElementById("ajusteEscala");if(m)m.value=ajustes.modo||"2d";if(t)t.value=ajustes.tema||"blue";if(e)e.value=ajustes.escala||"normal"}
 function guardarAjustesDesdePanel(){ajustes={modo:document.getElementById("ajusteModo").value,tema:document.getElementById("ajusteTema").value,escala:document.getElementById("ajusteEscala").value};guardarJSONSeguro(STORAGE_AJUSTES,ajustes);aplicarAjustes()}
 function actualizarOffsetCabecera(){const tb=document.querySelector(".topbar");if(tb)document.documentElement.style.setProperty("--sticky-offset",(tb.offsetHeight+8)+"px")}
+
+function recogerRegistrosActivos(lista, salida){
+  if(!Array.isArray(lista))return salida;
+  lista.forEach(r=>{
+    if(!r||r._deleted)return;
+    if(!r.fin)salida.push(r);
+    recogerRegistrosActivos(r.subtareas||[], salida);
+  });
+  return salida;
+}
+function textoTareas(cantidad, singular, plural){return cantidad===1?singular:plural}
+function generarMensajesInfoInicio(){
+  const activos=recogerRegistrosActivos(tareas,[]);
+  let vencidas=0;
+  const proximas={};
+  activos.forEach(t=>{
+    if(!t.vence)return;
+    const d=diasHasta(t.vence);
+    if(d===null)return;
+    if(d<0)vencidas++;
+    else proximas[d]=(proximas[d]||0)+1;
+  });
+  const mensajes=[];
+  if(vencidas>0){
+    mensajes.push({clase:"danger",texto:vencidas+" "+textoTareas(vencidas,"Tarea VENCIDA.","Tareas VENCIDAS.")});
+  }
+  Object.keys(proximas).map(Number).sort((a,b)=>a-b).forEach(d=>{
+    const c=proximas[d];
+    mensajes.push({clase:"warn",texto:"Atención, "+c+" "+textoTareas(c,"tarea vence","Tareas vencen")+" en "+d+" "+textoTareas(d,"día.","días.")});
+  });
+  if(!mensajes.length){
+    mensajes.push({clase:"ok",texto:"No hay tareas vencidas ni por vencer."});
+  }
+  return mensajes;
+}
+function mostrarInfoInicio(){
+  const overlay=document.getElementById("infoInicioOverlay");
+  const body=document.getElementById("infoInicioBody");
+  if(!overlay||!body)return;
+  body.innerHTML=generarMensajesInfoInicio().map(m=>`<div class="info-start-msg ${m.clase}">${escapeHTML(m.texto)}</div>`).join("");
+  overlay.classList.add("visible");
+}
+function cerrarInfoInicio(){
+  const overlay=document.getElementById("infoInicioOverlay");
+  if(overlay)overlay.classList.remove("visible");
+}
+
 function cargarFiltrosEnPantalla(){document.getElementById("textoFiltro").value=filtros.texto||"";document.getElementById("diasFiltro").value=filtros.dias||"";cargarMultiFiltrosEnPantalla();actualizarOffsetCabecera()}
 window.addEventListener("resize",actualizarOffsetCabecera);
-window.addEventListener("load",()=>{if(!Array.isArray(filtros.prioridades))filtros.prioridades=[];if(!Array.isArray(filtros.estados))filtros.estados=[];if(!Array.isArray(filtros.tipos))filtros.tipos=[];tareas=normalizarTareasImportadas(tareas);guardarJSONSeguro(STORAGE_TAREAS,tareas);asegurarUltimoCambioInicial();aplicarAjustes();cargarFiltrosEnPantalla();actualizarOffsetCabecera();render();iniciarFirebaseSync()});
+window.addEventListener("load",()=>{if(!Array.isArray(filtros.prioridades))filtros.prioridades=[];if(!Array.isArray(filtros.estados))filtros.estados=[];if(!Array.isArray(filtros.tipos))filtros.tipos=[];tareas=normalizarTareasImportadas(tareas);guardarJSONSeguro(STORAGE_TAREAS,tareas);asegurarUltimoCambioInicial();aplicarAjustes();cargarFiltrosEnPantalla();actualizarOffsetCabecera();render();mostrarInfoInicio();iniciarFirebaseSync()});
 </script>
 </body>
 </html>
